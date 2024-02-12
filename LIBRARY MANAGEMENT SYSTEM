@@ -1,0 +1,49 @@
+import sqlite3
+
+class Book:
+    def __init__(self, title, author, isbn, availability=True):
+        self.title = title
+        self.author = author
+        self.isbn = isbn
+        self.availability = availability
+
+    def __str__(self):
+        return f"{self.title} by {self.author}"
+
+# Connect to SQLite database
+conn = sqlite3.connect('library.db')
+c = conn.cursor()
+
+# Create books table
+c.execute('''CREATE TABLE IF NOT EXISTS books
+             (id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT,
+              author TEXT,
+              isbn TEXT,
+              availability BOOLEAN)''')
+
+# Function to add a book to the database
+def add_book(book):
+    c.execute('''INSERT INTO books (title, author, isbn, availability)
+                 VALUES (?, ?, ?, ?)''', (book.title, book.author, book.isbn, book.availability))
+    conn.commit()
+
+# Function to search for books
+def search_books(keyword):
+    c.execute('''SELECT * FROM books WHERE title LIKE ? OR author LIKE ? OR isbn LIKE ?''',
+              ('%'+keyword+'%', '%'+keyword+'%', '%'+keyword+'%'))
+    return c.fetchall()
+
+# Example usage
+if __name__ == "__main__":
+    # Add a book to the database
+    book1 = Book("The girl on the train", "Ruskin Bond", "9355208618")
+    add_book(book1)
+
+    # Search for books
+    results = search_books("train")
+    for book in results:
+        print(book)
+
+# Close the database connection
+conn.close()
